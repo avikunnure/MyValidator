@@ -8,14 +8,20 @@ declare class ValidationRule {
     Maximum(value: any, message: string): ValidationRule;
     Length(value: any, message: string): ValidationRule;
     RegularExp(value: any, message: string): ValidationRule;
-    Validate(value: any): boolean;
+    Validate(value: any, callback: (message: string, fieldName: string) => any): boolean;
 }
-declare abstract class AbstractValidator<T> {
+interface IValidator<T> {
+    Validate(obj: T): boolean;
+}
+declare abstract class AbstractValidator<T> implements IValidator<T> {
+    private ErrorMessages;
     private Rules;
     constructor();
     CreateRule(name: string): ValidationRule;
     AddRule(Rule: ValidationRule): void;
     Validate(obj: T): boolean;
+    ValidateForm(obj: FormData): boolean;
+    GetErrors(name: string): string;
 }
 
-export { AbstractValidator };
+export { AbstractValidator, IValidator };

@@ -1,8 +1,8 @@
-export interface IValidator{
+export interface IValidation{
     CompareValue:any;
     Validate(value:any): boolean    
 }
-export class IsRequired<T> implements IValidator{
+export class IsRequired<T> implements IValidation{
     public CompareValue: any;
     Validate(value: T): boolean {
         let result:boolean=false;
@@ -16,7 +16,7 @@ export class IsRequired<T> implements IValidator{
     }
 }
 
-export class Minimum<T> implements IValidator{
+export class Minimum<T> implements IValidation{
     public CompareValue: any;
     Validate(value: T): boolean {
         let result:boolean=false;
@@ -26,7 +26,7 @@ export class Minimum<T> implements IValidator{
         return result;
     }
 }
-export class Maximum<T> implements IValidator{
+export class Maximum<T> implements IValidation{
     public CompareValue: any;
     Validate(value: T): boolean {
         let result:boolean=false;
@@ -37,7 +37,7 @@ export class Maximum<T> implements IValidator{
     }
 }
 
-export class Length<T> implements IValidator{
+export class Length<T> implements IValidation{
     public CompareValue: any;
     Validate(value: T): boolean {
         let result:boolean=false;
@@ -48,7 +48,7 @@ export class Length<T> implements IValidator{
     }
 }
 
-export class EmailAddress<T> implements IValidator{
+export class EmailAddress<T> implements IValidation{
     public CompareValue: any;
     Validate(value: T): boolean {
         let result:boolean=false;
@@ -60,7 +60,7 @@ export class EmailAddress<T> implements IValidator{
     }
 }
 
-export class RegularExp<T> implements IValidator{
+export class RegularExp<T> implements IValidation{
     public CompareValue: any;
     Validate(value: T): boolean {
         let result:boolean=false;

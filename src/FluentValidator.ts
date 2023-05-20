@@ -1,12 +1,12 @@
-import { IValidator } from "./Validator";
+import { IValidation } from "./Validator";
 import { IsRequired,EmailAddress,Maximum,Minimum,Length,RegularExp } from "./Validator";
 
 class Validations{
-    public type:IValidator;
+    public type:IValidation;
     public typeName:string;
     public value:any;
     public message:string;
-    constructor(type:IValidator,typename:string,message:string){
+    constructor(type:IValidation,typename:string,message:string){
         this.type=type;
         this.message=message;
         this.typeName=typename;
@@ -18,6 +18,7 @@ class ValidationRule{
     private Validations:Array<Validations>;
     constructor(name:string){
         this.FieldName=name;
+        this.Validations=new Array<Validations>();
     }
     public IsRequired(message:string): ValidationRule{
         let rs= this.Validations.filter(s=>s.typeName=="IsRequired");
@@ -28,7 +29,7 @@ class ValidationRule{
     }
 
     public EmailAddress(message:string):ValidationRule{
-        let rs= this.Validations.filter(s=>s.typeName=="IsRequired");
+        let rs= this.Validations.filter(s=>s.typeName=="EmailAddress");
         if(rs.length==0){
             this.Validations.push(new Validations(new EmailAddress(),'EmailAddress',message));
         }
@@ -47,7 +48,7 @@ class ValidationRule{
 
     
     public Maximum(value:any,message:string):ValidationRule{
-        let rs= this.Validations.filter(s=>s.typeName=="Minimum");
+        let rs= this.Validations.filter(s=>s.typeName=="Maximum");
         if(rs.length==0){
             let val=new Validations(new Maximum(),'Maximum',message);
             val.value=value;
@@ -70,27 +71,35 @@ class ValidationRule{
     public RegularExp(value:any,message:string):ValidationRule{
         let rs= this.Validations.filter(s=>s.typeName=="RegularExp");
         if(rs.length==0){
-            let val=new Validations(new Length(),'RegularExp',message);
+            let val=new Validations(new RegularExp(),'RegularExp',message);
             val.value=value;
             this.Validations.push(val);
         }
         return this;
     }
 
-    public Validate(value : any) :boolean {
+    public Validate(value : any,callback:(message:string,fieldName:string) =>any) :boolean {
         let result:boolean=true;
         for (let index = 0; index < this.Validations.length; index++) {
             const element = this.Validations[index];
             result = result && element.type.Validate(value);
+            if(result!=true){
+                callback(element.message,this.FieldName);
+            }
         }
         return result;
     }
 }
-export abstract class AbstractValidator<T> {
+export interface IValidator<T>{
+    Validate(obj:T):boolean;
+}
+export abstract class AbstractValidator<T> implements IValidator<T> {
+    private ErrorMessages:Array<{messages:string,fieldName:string}>;
     private  Rules:Array<ValidationRule>;
-    constructor() {
-        
-    }
+   constructor(){
+    this.Rules=new Array<ValidationRule>();
+    this.ErrorMessages=new Array();
+   }
     CreateRule(name:string){
         let obj = new ValidationRule(name);
         return obj;
@@ -99,11 +108,50 @@ export abstract class AbstractValidator<T> {
         this.Rules.push(Rule);
     }   
     Validate(obj:T){
+      
         let result:boolean=true;
         for (let index = 0; index < this.Rules.length; index++) {
             const element = this.Rules[index];
-            result = result && element.Validate(obj[element.FieldName]);
+            result = result && element.Validate(obj[element.FieldName],(msg,ele)=>
+            { 
+                let objresult={
+                    messages:msg,
+                    fieldName:ele,
+                }
+                this.ErrorMessages.push(objresult);
+            });
         }
         return result;
     }
+    ValidateForm(obj:FormData){
+        let keys=[];
+        for (const iterator of obj.keys()) {
+            keys.push(iterator);
+        }
+        let result:boolean=true;
+        for (let index = 0; index < this.Rules.length; index++) {
+            const element = this.Rules[index];
+            let haskeys = keys.filter(s=>s==element.FieldName).length>0; 
+            if(haskeys){
+                result = result && element.Validate(obj.get( element.FieldName),(msg,ele)=>
+                { 
+                    let objresult={
+                        messages:msg,
+                        fieldName:ele,
+                    }
+                    this.ErrorMessages.push(objresult);
+                });
+            }
+        }
+        return result;
+    }
+    GetErrors(name:string):string{
+       let errors= this.ErrorMessages.filter(s=>s.fieldName==name);
+       let message :string="";
+       errors.forEach(element => {
+        message = message +","+ element.messages;
+       }); 
+       return message;
+    }
 }
+

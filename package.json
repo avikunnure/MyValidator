@@ -1,14 +1,35 @@
 {
-  "name": "fluentvalidatorjs",
-  "version": "1.0.0",
+  "name": "myfluentvalidatorjs",
+  "version": "1.0.5",
   "description": "",
-  "main": "index.ts",
   "scripts": {
     "build": "tsup index.ts --format cjs,esm --dts",
-    "lint": "tsc"
+    "lint": "tsc",
+    "prepublish": "tsc"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/avikunnure/MyValidator.git"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "author": "",
   "license": "ISC",
+  "keywords": [
+    "typescript",
+    "reactjs",
+    "utility",
+    "validator",
+    "my fluent validator",
+    "javascript",
+    "custom validation",
+    "email validation",
+    "required validation"
+  ],
+  "homepage": "https://github.com/avikunnure/MyValidator",
   "devDependencies": {
     "tsup": "^6.7.0",
     "typescript": "^5.0.4"

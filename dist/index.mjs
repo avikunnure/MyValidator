@@ -45,6 +45,16 @@ var EmailAddress = class {
     return result;
   }
 };
+var RegularExp = class {
+  Validate(value) {
+    let result = false;
+    let regexp = new RegExp(this.CompareValue.toString());
+    if (regexp.test(value.toString())) {
+      result = true;
+    }
+    return result;
+  }
+};
 
 // src/FluentValidator.ts
 var Validations = class {
@@ -57,6 +67,7 @@ var Validations = class {
 var ValidationRule = class {
   constructor(name) {
     this.FieldName = name;
+    this.Validations = new Array();
   }
   IsRequired(message) {
     let rs = this.Validations.filter((s) => s.typeName == "IsRequired");
@@ -66,7 +77,7 @@ var ValidationRule = class {
     return this;
   }
   EmailAddress(message) {
-    let rs = this.Validations.filter((s) => s.typeName == "IsRequired");
+    let rs = this.Validations.filter((s) => s.typeName == "EmailAddress");
     if (rs.length == 0) {
       this.Validations.push(new Validations(new EmailAddress(), "EmailAddress", message));
     }
@@ -82,7 +93,7 @@ var ValidationRule = class {
     return this;
   }
   Maximum(value, message) {
-    let rs = this.Validations.filter((s) => s.typeName == "Minimum");
+    let rs = this.Validations.filter((s) => s.typeName == "Maximum");
     if (rs.length == 0) {
       let val = new Validations(new Maximum(), "Maximum", message);
       val.value = value;
@@ -102,23 +113,28 @@ var ValidationRule = class {
   RegularExp(value, message) {
     let rs = this.Validations.filter((s) => s.typeName == "RegularExp");
     if (rs.length == 0) {
-      let val = new Validations(new Length(), "RegularExp", message);
+      let val = new Validations(new RegularExp(), "RegularExp", message);
       val.value = value;
       this.Validations.push(val);
     }
     return this;
   }
-  Validate(value) {
+  Validate(value, callback) {
     let result = true;
     for (let index = 0; index < this.Validations.length; index++) {
       const element = this.Validations[index];
       result = result && element.type.Validate(value);
+      if (result != true) {
+        callback(element.message, this.FieldName);
+      }
     }
     return result;
   }
 };
 var AbstractValidator = class {
   constructor() {
+    this.Rules = new Array();
+    this.ErrorMessages = new Array();
   }
   CreateRule(name) {
     let obj = new ValidationRule(name);
@@ -131,9 +147,44 @@ var AbstractValidator = class {
     let result = true;
     for (let index = 0; index < this.Rules.length; index++) {
       const element = this.Rules[index];
-      result = result && element.Validate(obj[element.FieldName]);
+      result = result && element.Validate(obj[element.FieldName], (msg, ele) => {
+        let objresult = {
+          messages: msg,
+          fieldName: ele
+        };
+        this.ErrorMessages.push(objresult);
+      });
     }
     return result;
+  }
+  ValidateForm(obj) {
+    let keys = [];
+    for (const iterator of obj.keys()) {
+      keys.push(iterator);
+    }
+    let result = true;
+    for (let index = 0; index < this.Rules.length; index++) {
+      const element = this.Rules[index];
+      let haskeys = keys.filter((s) => s == element.FieldName).length > 0;
+      if (haskeys) {
+        result = result && element.Validate(obj.get(element.FieldName), (msg, ele) => {
+          let objresult = {
+            messages: msg,
+            fieldName: ele
+          };
+          this.ErrorMessages.push(objresult);
+        });
+      }
+    }
+    return result;
+  }
+  GetErrors(name) {
+    let errors = this.ErrorMessages.filter((s) => s.fieldName == name);
+    let message = "";
+    errors.forEach((element) => {
+      message = message + "," + element.messages;
+    });
+    return message;
   }
 };
 export {
