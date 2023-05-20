@@ -8,6 +8,7 @@ to use this just import javascript validator class like below
 #import {AbstractValidator } from "myfluentvalidatorjs"
 
 then create and class in javascript which extends from abscract validator as shown below.
+
 class Myclass {
     name = "";
 }
