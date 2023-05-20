@@ -5,7 +5,7 @@ as use form hook in react class components are more tricky so implemented an cus
 first install package from mpm then
 to use this just import javascript validator class like below
 
-import {AbstractValidator } from "myfluentvalidatorjs"
+#import {AbstractValidator } from "myfluentvalidatorjs"
 
 then create and class in javascript which extends from abscract validator as shown below.
 class Myclass {
